@@ -4,14 +4,15 @@ Python / OpenCV pipeline to process films and extract their colour information.
 
 ## Requirements
 
-* [Python](http://python.org/) - version ^3.0
-* [Python Imaging Library](http://www.pythonware.com/products/pil/)
-* [Numpy](http://sourceforge.net/projects/numpy/)
+* [Python](http://python.org/) - version ^3.10.0
+* [Poetry](https://python-poetry.org/) - package management
+* [Python Imaging Library](https://pillow.readthedocs.io/en/latest/index.html)
+* [Numpy](https://numpy.org/)
 * [OpenCV](http://opencv.org/) - Ensure that you add the path of the OpenCV build module to your PYTHONPATH environment variable, for example: ;[root]\opencv\build\python\2.7;
 
 ## Preparation
 
-* Convert your DVDs to AVI files.
+* Convert DVDs to AVI files.
 * Rename the files so that they conform to the spotmap title style:  
 	* Full Monty, The
 	* Christmas Carol, A

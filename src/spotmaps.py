@@ -30,6 +30,7 @@ else:
 		newlist.append(line.rstrip('\n'))
 		line = smcf.readline()
 smcf.close()
+
 print 'Retrieved new file information.'
 
 # Get the processed file list
