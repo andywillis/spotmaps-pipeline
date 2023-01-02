@@ -1,7 +1,11 @@
-from __future__ import division
+# from __future__ import division
+
 import os, glob, math, sys, time
-import cv
+
+import cv2 as cv
+
 from PIL import Image, ImageDraw
+
 from numpy import *
 
 os.system('cls')

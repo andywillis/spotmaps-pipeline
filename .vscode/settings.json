@@ -1,5 +1,10 @@
 {
-  "eslint.workingDirectories": [
-    "src/client", "src/server"
+  "python.formatting.provider": "black",
+  "python.linting.flake8Enabled": true,
+  "python.linting.enabled": true,
+  "python.defaultInterpreterPath": "c:\\Users\\accou\\AppData\\Local\\Programs\\Python\\Python311\\",
+  "python.analysis.extraPaths": [
+    "c:\\Users\\accou\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages",
+    "c:\\Users\\accou\\AppData\\Local\\pypoetry\\Cache\\virtualenvs\\spotmaps-pipeline-sm3gMk3E-py3.11\\Lib\\site-packages"
   ]
 }
