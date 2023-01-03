@@ -1,34 +1,20 @@
-from __future__ import division
-import os, glob, math, sys, time
-import cv
+import os, glob, time
+import cv2 as cv
 
-# User defined var - use double backslashes if folder is not in spotmaps folder
-input = 'C:\\Users\\spotmaps\\process\\'
+import removeSpotmapsList
+import iterateFilmFiles
 
-if os.path.isfile('newlist.txt') == True:
-	os.remove('newlist.txt')
+# Initialise folders
+inputFolder = 'files\\input\\'
+outputFolder = 'files\\output\\'
 
-# Get the processed file list
-smlist = []
-for infile in glob.glob(input + '*.avi'):
+# Initialise files
+spotmapsListFile = 'spotmapsList.txt'
+# logFile = 'log.txt'
 
-	startTime = time.time()
-	
-	path, filename = os.path.split(infile)
-	filename = filename.split('.')[0]
+# Initialise paths
+spotmapsListFilePath = f'{outputFolder}\\{spotmapsListFile}'
+# logFilePath = f'{outputFolder}\\{logFile}'
 
-	print 'Analysing: ' + filename
-	if filename in smlist:
-		print 'Already completed.'
-	if ' CD' in filename:
-		print 'Disgarding ' + filename + ': file part of series'
-	else:
-		capture = cv.CaptureFromFile(infile)
-		totalFrames = int(cv.GetCaptureProperty(capture,cv.CV_CAP_PROP_FRAME_COUNT))
-		if totalFrames == 0:
-			print 'Unable to read avi.'
-		else:
-			smlist.append(filename + '\n')
-			with open('newlist.txt', 'a') as myfile:
-				myfile.write(filename + '\n')
-				myfile.close()
+removeSpotmapsList(spotmapsListFilePath)
+iterateFilmFiles(spotmapsListFilePath)
