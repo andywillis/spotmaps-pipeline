@@ -1,10 +1,14 @@
 {
   "python.formatting.provider": "black",
-  "python.linting.flake8Enabled": true,
   "python.linting.enabled": true,
   "python.defaultInterpreterPath": "c:\\Users\\accou\\AppData\\Local\\Programs\\Python\\Python311\\",
   "python.analysis.extraPaths": [
     "c:\\Users\\accou\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages",
     "c:\\Users\\accou\\AppData\\Local\\pypoetry\\Cache\\virtualenvs\\spotmaps-pipeline-sm3gMk3E-py3.11\\Lib\\site-packages"
+  ],
+  "python.linting.flake8Enabled": true,
+  "python.linting.flake8Args": [
+    "--max-line-length=120",
+    "--ignore=E401,E402,F841,F401,E302,E305,W391"
   ]
 }
