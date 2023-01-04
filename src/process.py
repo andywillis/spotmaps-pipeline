@@ -1,12 +1,13 @@
 from __future__ import division
+from operator import itemgetter
 
 import os, glob, math, sys, time
-from operator import itemgetter
 
 import cv2 as cv
 from PIL import Image, ImageDraw
 import numpy as np
 
+from file import removeFile
 
 def processList(config):
 
@@ -19,10 +20,7 @@ def processList(config):
     logFile = 'spotmaps.log'
     logFilePath = f'{outputFolder}{logFile}'
 
-    # Init log file
-    if os.path.isfile(logFilePath) is True:
-
-        os.remove(logFilePath)
+    removeFile(logFilePath)
 
     # Get the file list
     newlist = []
@@ -72,8 +70,8 @@ def processList(config):
 
         startTime = time.time()
 
-        path, filename = os.path.split(infile)
-        filename = filename.split('.')[0]
+        path_filename = os.path.split(infile)
+        filename = path_filename[1].split('.')[0]
 
         if filename in processedlist:
 
@@ -202,7 +200,7 @@ def processList(config):
 
                         second = 1
                         imageName = filename + '.tif'
-                        im.save(output + imageName, 'TIFF')
+                        im.save(outputFolder + imageName, 'TIFF')
 
                         # Build thumbnail
                         imageThumbName = filename + '_thumb.png'
@@ -212,11 +210,11 @@ def processList(config):
                             int(math.ceil(im.size[1] / 100 * 8))
                         ), Image.ANTIALIAS)
 
-                        im_thumb.save(output + imageThumbName, 'PNG')
+                        im_thumb.save(outputFolder + imageThumbName, 'PNG')
 
                         # Save information
                         jsonName = filename + '.json'
-                        mapFile = open(output + jsonName, 'w')
+                        mapFile = open(outputFolder + jsonName, 'w')
                         mapFile.write('{')
                         mapFile.write('"title": "' + filename + '",')
                         mapFile.write('"numberOfSpots": ' + str(completeNumberOfSpots) + ',')
@@ -238,7 +236,7 @@ def processList(config):
 
                         print(msg1)
 
-                        with open(log, 'a') as myfile:
+                        with open(logFilePath, 'a') as myfile:
 
                             myfile.write(filename + ': ' + msg1 + '\n')
                             myfile.close()
@@ -250,7 +248,7 @@ def processList(config):
                         msg2 = 'Error processing file'
                         print(msg2)
 
-                        with open(log, 'a') as myfile:
+                        with open(logFilePath, 'a') as myfile:
 
                             myfile.write(msg2 + ': ' + filename + '\n')
                             myfile.close()
@@ -263,7 +261,7 @@ def processList(config):
 
                 print(msg3)
 
-                with open(log, 'a') as myfile:
+                with open(logFilePath, 'a') as myfile:
 
                     myfile.write(msg3 + '\n')
                     myfile.close()

@@ -16,7 +16,6 @@ listFile = 'spotmapsList.txt'
 def removeList(config):
 
     outputFolder = itemgetter('outputFolder')(config)
-
     listFilePath = f'{outputFolder}{listFile}'
 
     removeFile(listFilePath)
