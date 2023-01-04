@@ -6,7 +6,7 @@ from process import processList
 cwd = os.getcwd()
 
 # Initialise info
-author = 'Andy Willis'
+contributor = 'Andy Willis'
 year = datetime.date.today().year
 
 # Initialise folders
@@ -15,7 +15,7 @@ outputFolder = f'{cwd}\\files\\output\\'
 
 # Initialise config
 config = {
-    'author': author,
+    'contributor': contributor,
     'year': year,
     'inputFolder': inputFolder,
     'outputFolder': outputFolder

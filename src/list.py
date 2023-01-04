@@ -1,9 +1,14 @@
-import os, glob
-import cv2 as cv
+from os import path
+from glob import glob
 from operator import itemgetter
+from file import removeFile
+
+import cv2
 
 
+# Global
 listFile = 'spotmapsList.txt'
+
 
 # `removeList`
 #
@@ -14,9 +19,7 @@ def removeList(config):
 
     listFilePath = f'{outputFolder}{listFile}'
 
-    if os.path.isfile(listFilePath) is True:
-
-        os.remove(listFilePath)
+    removeFile(listFilePath)
 
 
 # `buildList`
@@ -33,9 +36,9 @@ def buildList(config):
     listFilePath = f'{outputFolder}{listFile}'
     spotmapsList = []
 
-    for infile in glob.glob(inputFolder + '*.*'):
+    for infile in glob(inputFolder + '*.*'):
 
-        path_filename = os.path.split(infile)
+        path_filename = path.split(infile)
         filename = path_filename[1].split('.')[0]
 
         print(f'Analysing: {filename}')
@@ -50,8 +53,8 @@ def buildList(config):
 
         else:
 
-            capture = cv.VideoCapture(infile)
-            totalFrames = int(capture.get(cv.CAP_PROP_FRAME_COUNT))
+            capture = cv2.VideoCapture(infile)
+            totalFrames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
 
             if totalFrames == 0:
 

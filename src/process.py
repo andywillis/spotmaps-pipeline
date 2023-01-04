@@ -1,24 +1,28 @@
 from __future__ import division
 
 import os, glob, math, sys, time
+from operator import itemgetter
+
 import cv2 as cv
 from PIL import Image, ImageDraw
 import numpy as np
+
 
 def processList(config):
 
     os.system('cls')
 
-    # input = 'C:\\Users\\spotmaps\\process\\'
-    contributor = 'Andy Willis'
+    contributor, year, inputFolder, outputFolder = itemgetter(
+        'contributor', 'year', 'inputFolder', 'outputFolder'
+    )(config)
 
-    # output = 'output/'
-    log = 'log/spotmaps.log'
+    logFile = 'spotmaps.log'
+    logFilePath = f'{outputFolder}{logFile}'
 
     # Init log file
-    if os.path.isfile(log) is True:
+    if os.path.isfile(logFilePath) is True:
 
-        os.remove(log)
+        os.remove(logFilePath)
 
     # Get the file list
     newlist = []
@@ -64,7 +68,7 @@ def processList(config):
 
     print('Retrieved processed files information.')
 
-    for infile in glob.glob(input + '*.avi'):
+    for infile in glob.glob(inputFolder + '*.*'):
 
         startTime = time.time()
 
