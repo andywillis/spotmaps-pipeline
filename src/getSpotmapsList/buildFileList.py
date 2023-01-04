@@ -1,16 +1,16 @@
 import os, glob, time
 import cv2 as cv
 
+# Initialise array
 spotmapsList = []
 
-def iterateFilmFiles(spotmapsListFilePath):
+def buildFileList(inputFolder, spotmapsListFilePath):
 
-    for infile in glob.glob(input + '*.*'):
+    for infile in glob.glob(inputFolder + '*.*'):
 
-        startTime = time.time()
+        path_filename = os.path.split(infile)
 
-        path, filename = os.path.split(infile)
-        filename = filename.split('.')[0]
+        filename = path_filename[1].split('.')[0]
 
         print(f'Analysing: {filename}')
 
@@ -24,9 +24,9 @@ def iterateFilmFiles(spotmapsListFilePath):
 
         else:
 
-            capture = cv.CaptureFromFile(infile)
+            capture = cv.VideoCapture(infile)
 
-            totalFrames = int(cv.GetCaptureProperty(capture, cv.CV_CAP_PROP_FRAME_COUNT))
+            totalFrames = int(capture.get(cv.CAP_PROP_FRAME_COUNT))
 
             if totalFrames == 0:
 

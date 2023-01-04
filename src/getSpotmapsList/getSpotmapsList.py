@@ -1,12 +1,15 @@
-import removeSpotmapsList
-import iterateFilmFiles
+import os
+from removeSpotmapsList import removeSpotmapsList
+from buildFileList import buildFileList
+
+cwd = os.getcwd()
 
 # Initialise
-inputFolder = 'files\\input\\'
-outputFolder = 'files\\output\\'
+inputFolder = f'{cwd}\\files\\input\\'
+outputFolder = f'{cwd}\\files\\output\\'
 spotmapsListFile = 'spotmapsList.txt'
-spotmapsListFilePath = f'{outputFolder}\\{spotmapsListFile}'
+spotmapsListFilePath = f'{outputFolder}{spotmapsListFile}'
 
 # Execute
 removeSpotmapsList(spotmapsListFilePath)
-iterateFilmFiles(spotmapsListFilePath)
+buildFileList(inputFolder, spotmapsListFilePath)

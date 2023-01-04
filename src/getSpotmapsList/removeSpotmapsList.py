@@ -1,6 +1,6 @@
 import os
 
-def removeSpotmapList(spotmapsListFilePath):
+def removeSpotmapsList(spotmapsListFilePath):
 
     if os.path.isfile(spotmapsListFilePath) is True:
 
