@@ -21,9 +21,7 @@ config = {
     'outputFolder': outputFolder
 }
 
-# List functions
+# Pipeline
 removeList(config)
 buildList(config)
-
-# Process functions
 # processList(config)

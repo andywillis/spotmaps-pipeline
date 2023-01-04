@@ -5,7 +5,7 @@ from operator import itemgetter
 
 listFile = 'spotmapsList.txt'
 
-# removeList
+# `removeList`
 #
 # If the spotmapsList exists remove it
 def removeList(config):
@@ -19,7 +19,7 @@ def removeList(config):
         os.remove(listFilePath)
 
 
-# buildList
+# `buildList`
 #
 # Build a new spotmaps list by iterating
 # over the files in the input folder, and adding
@@ -31,13 +31,11 @@ def buildList(config):
     )(config)
 
     listFilePath = f'{outputFolder}{listFile}'
-
     spotmapsList = []
 
     for infile in glob.glob(inputFolder + '*.*'):
 
         path_filename = os.path.split(infile)
-
         filename = path_filename[1].split('.')[0]
 
         print(f'Analysing: {filename}')
@@ -53,7 +51,6 @@ def buildList(config):
         else:
 
             capture = cv.VideoCapture(infile)
-
             totalFrames = int(capture.get(cv.CAP_PROP_FRAME_COUNT))
 
             if totalFrames == 0:
