@@ -1,0 +1,1 @@
+py getSpotmapsList.py
