@@ -1,10 +1,38 @@
-import os, glob, time
+import os, glob
 import cv2 as cv
+from operator import itemgetter
 
-# Initialise array
-spotmapsList = []
 
-def buildFileList(inputFolder, spotmapsListFilePath):
+listFile = 'spotmapsList.txt'
+
+# removeList
+#
+# If the spotmapsList exists remove it
+def removeList(config):
+
+    outputFolder = itemgetter('outputFolder')(config)
+
+    listFilePath = f'{outputFolder}{listFile}'
+
+    if os.path.isfile(listFilePath) is True:
+
+        os.remove(listFilePath)
+
+
+# buildList
+#
+# Build a new spotmaps list by iterating
+# over the files in the input folder, and adding
+# them to the file
+def buildList(config):
+
+    inputFolder, outputFolder = itemgetter(
+        'inputFolder', 'outputFolder'
+    )(config)
+
+    listFilePath = f'{outputFolder}{listFile}'
+
+    spotmapsList = []
 
     for infile in glob.glob(inputFolder + '*.*'):
 
@@ -36,6 +64,6 @@ def buildFileList(inputFolder, spotmapsListFilePath):
 
                 spotmapsList.append(f'{filename}\n')
 
-                with open(spotmapsListFilePath, 'a') as myfile:
+                with open(listFilePath, 'a') as myfile:
                     myfile.write(f'{filename}\n')
                     myfile.close()
