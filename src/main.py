@@ -1,6 +1,7 @@
 import os, datetime
 
-from list import removeList, buildList
+from list import buildList
+from file import createFile
 from process import processList
 
 cwd = os.getcwd()
@@ -8,6 +9,11 @@ cwd = os.getcwd()
 # Initialise info
 contributor = 'Andy Willis'
 year = datetime.date.today().year
+
+# Initialise files
+logFile = 'log.txt'
+processedLogFile = 'processedFiles.txt'
+listFile = 'spotmapsList.txt'
 
 # Initialise folders
 inputFolder = f'{cwd}\\files\\input\\'
@@ -18,10 +24,16 @@ config = {
     'contributor': contributor,
     'year': year,
     'inputFolder': inputFolder,
-    'outputFolder': outputFolder
+    'outputFolder': outputFolder,
+    'logFile': logFile,
+    'listFile': listFile,
+    'processedLogFile': processedLogFile
 }
 
 # Pipeline
-removeList(config)
+
+createFile(f'{outputFolder}{logFile}')
+createFile(f'{outputFolder}{processedLogFile}')
+
 buildList(config)
-# processList(config)
+processList(config)

@@ -1,267 +1,226 @@
 from __future__ import division
 from operator import itemgetter
 
-import os, glob, math, sys, time
+import os, glob, math, sys, time, json
 
 import cv2 as cv
 from PIL import Image, ImageDraw
 import numpy as np
 
-from file import removeFile
+from file import getListFromFileContents, appendToFile
 
+
+# `processList`
+#
+# Iterate over the files and produce spotmap images
+# and JSON
 def processList(config):
 
     os.system('cls')
 
-    contributor, year, inputFolder, outputFolder = itemgetter(
-        'contributor', 'year', 'inputFolder', 'outputFolder'
+    (contributor,
+     inputFolder,
+     outputFolder,
+     logFile,
+     processedLogFile,
+     listFile) = itemgetter(
+        'contributor', 'inputFolder', 'outputFolder',
+        'logFile', 'processedLogFile', 'listFile'
     )(config)
 
-    logFile = 'spotmaps.log'
     logFilePath = f'{outputFolder}{logFile}'
+    listFilePath = f'{outputFolder}{listFile}'
+    processedLogPath = f'{outputFolder}{processedLogFile}'
 
-    removeFile(logFilePath)
+    # removeFile(logFilePath)
+    fileList = getListFromFileContents(listFilePath)
+    processedList = getListFromFileContents(processedLogPath)
 
-    # Get the file list
-    newlist = []
+    print('Retrieved lists')
 
-    if os.path.isfile('newlist.txt') is False:
-
-        smcf = open('newlist.txt', 'w')
-        smcf.write('')
-
-    else:
-
-        smcf = open('newlist.txt', 'r')
-        line = smcf.readline()
-
-        while line:
-
-            newlist.append(line.rstrip('\n'))
-            line = smcf.readline()
-
-    smcf.close()
-
-    print('Retrieved new file information.')
-
-    # Get the processed file list
-    processedlist = []
-
-    if os.path.isfile('processedFiles.txt') is False:
-
-        smcf = open('processedFiles.txt', 'w')
-        smcf.write('')
-
-    else:
-
-        smcf = open('processedFiles.txt', 'r')
-        line = smcf.readline()
-
-        while line:
-
-            processedlist.append(line.rstrip('\n'))
-            line = smcf.readline()
-
-    smcf.close()
-
-    print('Retrieved processed files information.')
-
-    for infile in glob.glob(inputFolder + '*.*'):
+    for currentFile in glob.glob(inputFolder + '*.*'):
 
         startTime = time.time()
 
-        path_filename = os.path.split(infile)
+        path_filename = os.path.split(currentFile)
         filename = path_filename[1].split('.')[0]
 
-        if filename in processedlist:
+        if filename in processedList:
 
             print(f'{filename} - already completed.')
 
         else:
 
-            if filename in newlist:
+            if filename in fileList:
 
-                capture = cv.CaptureFromFile(infile)
-                totalFrames = int(cv.GetCaptureProperty(capture, cv.CV_CAP_PROP_FRAME_COUNT))
+                capture = cv.VideoCapture(currentFile)
+                totalFrames = int(capture.get(cv.CAP_PROP_FRAME_COUNT))
 
-                if totalFrames == 0:
+                try:
 
-                    print('filename - unable to read avi.')
+                    print('********')
 
-                    with open('processedFiles.txt', 'a') as myfile:
+                    fps = int(capture.get(cv.CAP_PROP_FPS))
 
-                        myfile.write(f'{filename}\n')
-                        myfile.close()
+                    print(f'Analysing: {filename} / {str(totalFrames)} frames / {str(fps)} fps')
 
-                else:
+                    numberOfSpots = int(math.floor(totalFrames / fps))
+                    numberOfMinutes = int(math.ceil(numberOfSpots / 60))
+                    trimFrames = numberOfSpots * fps
+                    missing = 60 - numberOfSpots % 60
+                    completeNumberOfSpots = numberOfSpots + missing
 
-                    try:
+                    if missing == 60:
 
-                        print('********')
-                        fps = int(cv.GetCaptureProperty(capture, cv.CV_CAP_PROP_FPS))
+                        missing = 0
 
-                        print(f'Analysing: {filename} / {str(totalFrames)} frames / {str(fps)} fps')
+                    # Build rgbArray, 4 columns because we're using RGBA instead of plain RGB.
+                    rgbData = np.zeros((completeNumberOfSpots, 3), dtype=np.int32)
 
-                        numberOfSpots = int(math.floor(totalFrames / fps))
-                        numberOfMinutes = int(math.ceil(numberOfSpots / 60))
-                        trimFrames = numberOfSpots * fps
-                        missing = 60 - numberOfSpots % 60
-                        completeNumberOfSpots = numberOfSpots + missing
+                    frame = 1
+                    spot = 1
+                    frameInSecond = 1
+                    spotR = spotG = spotB = 0
 
-                        if missing == 60:
+                    while frame <= trimFrames:
 
-                            missing = 0
+                        ret, snapshot = capture.read()
 
-                        # Build rgbArray, 4 columns because we're using RGBA instead of plain RGB.
-                        rgbData = np.zeros((completeNumberOfSpots, 3), dtype=np.int32)
-                        frame = 1
-                        spot = 1
-                        frameInSecond = 1
-                        spotR = spotG = spotB = 0
+                        if not ret:
 
-                        while frame <= trimFrames:
+                            print('Frame could not be read')
 
-                            snapshot = cv.QueryFrame(capture)
-                            point = cv.CreateImage((1, 1), cv.IPL_DEPTH_8U, 3)
-                            cv.Resize(snapshot, point, cv.CV_INTER_AREA)
-                            r = int(point[0, 0][2])
-                            g = int(point[0, 0][1])
-                            b = int(point[0, 0][0])
+                        # create an image 1 pixel wide
+                        point = cv.CreateImage((1, 1), cv.IPL_DEPTH_8U, 3)
+                        
+                        # resize the frame to the point
+                        cv.Resize(snapshot, point, cv.INTER_AREA)
 
-                            if frameInSecond > 1:
+                        # get the rgb data from that point
+                        r = int(point[0, 0][2])
+                        g = int(point[0, 0][1])
+                        b = int(point[0, 0][0])
 
-                                spotR = spotR + r
-                                spotG = spotG + g
-                                spotB = spotB + b
+                        if frameInSecond > 1:
 
-                            if frameInSecond == fps:
+                            spotR = spotR + r
+                            spotG = spotG + g
+                            spotB = spotB + b
 
-                                percent = spot / numberOfSpots * 100
-                                sys.stdout.write("Completed: %d%% \r" % (percent))
-                                spotR = int(spotR / fps)
-                                spotG = int(spotG / fps)
-                                spotB = int(spotB / fps)
+                        if frameInSecond == fps:
 
-                                # NOTE: the full opacity value here '1' not '255'
-                                # since the color array is used for Canvas rather than Python.
-                                rgbData[spot - 1] = (spotR, spotG, spotB)
-                                frameInSecond = 0
-                                spot += 1
-                                spotR = spotG = spotB = 0
+                            percent = spot / numberOfSpots * 100
+                            sys.stdout.write("Completed: %d%% \r" % (percent))
+                            spotR = int(spotR / fps)
+                            spotG = int(spotG / fps)
+                            spotB = int(spotB / fps)
 
-                            frame += 1
-                            frameInSecond += 1
-
-                        second = 1
-
-                        while second <= missing:
-
+                            # NOTE: the full opacity value here '1' not '255'
+                            # since the color array is used for Canvas rather than Python.
                             rgbData[spot - 1] = (spotR, spotG, spotB)
+                            frameInSecond = 0
                             spot += 1
-                            second += 1
+                            spotR = spotG = spotB = 0
 
-                        # Build image
-                        spotW = 50
-                        spotH = 50
-                        spotG = 2
-                        canvasW = (spotW * 60) + (59 * spotG)
-                        canvasH = (spotH * numberOfMinutes) + (numberOfMinutes - 1 * spotG)
+                        frame += 1
+                        frameInSecond += 1
 
-                        print(f'Canvas is {str(canvasW)} x {str(canvasH)}')
+                    second = 1
 
-                        im = Image.new('RGB', (canvasW, canvasH), (255, 255, 255))
-                        draw = ImageDraw.Draw(im)
-                        x = 0
-                        y = 0
-                        spot = 1
-                        minute = 1
-                        second = 1
+                    while second <= missing:
 
-                        while spot <= completeNumberOfSpots:
+                        rgbData[spot - 1] = (spotR, spotG, spotB)
+                        spot += 1
+                        second += 1
 
-                            if second == 61:
+                    # Build image
+                    spotW = 50
+                    spotH = 50
+                    spotG = 2
 
-                                x = 0
-                                y += spotH + spotG
-                                second = 1
+                    canvasW = (spotW * 60) + (59 * spotG)
+                    canvasH = (spotH * numberOfMinutes) + (numberOfMinutes - 1 * spotG)
 
-                            draw.rectangle((
-                                x, y, x + spotW,
-                                y + spotH
-                            ), fill=(
-                                rgbData[spot - 1][0],
-                                rgbData[spot - 1][1],
-                                rgbData[spot - 1][2]
-                            ))
+                    print(f'Canvas is {str(canvasW)} x {str(canvasH)}')
 
-                            x += spotW + spotG
-                            spot += 1
-                            second += 1
+                    im = Image.new('RGB', (canvasW, canvasH), (255, 255, 255))
+                    draw = ImageDraw.Draw(im)
 
-                        second = 1
-                        imageName = filename + '.tif'
-                        im.save(outputFolder + imageName, 'TIFF')
+                    x = 0
+                    y = 0
 
-                        # Build thumbnail
-                        imageThumbName = filename + '_thumb.png'
+                    spot = 1
+                    second = 1
 
-                        im_thumb = im.resize((
-                            int(math.ceil(im.size[0] / 100 * 8)),
-                            int(math.ceil(im.size[1] / 100 * 8))
-                        ), Image.ANTIALIAS)
+                    while spot <= completeNumberOfSpots:
 
-                        im_thumb.save(outputFolder + imageThumbName, 'PNG')
+                        if second == 61:
 
-                        # Save information
-                        jsonName = filename + '.json'
-                        mapFile = open(outputFolder + jsonName, 'w')
-                        mapFile.write('{')
-                        mapFile.write('"title": "' + filename + '",')
-                        mapFile.write('"numberOfSpots": ' + str(completeNumberOfSpots) + ',')
-                        mapFile.write('"contributor": "' + contributor + '",')
-                        mapFile.write('"rgba": "')
-                        mapFile.write(str(rgbData.tolist()) + '"')
-                        mapFile.write('}')
-                        mapFile.close()
+                            x = 0
+                            y += spotH + spotG
+                            second = 1
 
-                        # Update the processed files list
-                        with open('processedFiles.txt', 'a') as myfile:
+                        draw.rectangle((
+                            x, y, x + spotW,
+                            y + spotH
+                        ), fill=(
+                            rgbData[spot - 1][0],
+                            rgbData[spot - 1][1],
+                            rgbData[spot - 1][2]
+                        ))
 
-                            myfile.write(filename + '\n')
-                            myfile.close()
+                        x += spotW + spotG
+                        spot += 1
+                        second += 1
 
-                        endTime = time.time() - startTime
-                        minutes = str("%.2f" % (endTime / 60))
-                        msg1 = 'Completed in ' + minutes + ' minutes.'
+                    second = 1
+                    imageName = filename + '.tif'
+                    im.save(outputFolder + imageName, 'TIFF')
 
-                        print(msg1)
+                    # Build thumbnail
+                    imageThumbName = filename + '_thumb.png'
 
-                        with open(logFilePath, 'a') as myfile:
+                    im_thumb = im.resize((
+                        int(math.ceil(im.size[0] / 100 * 8)),
+                        int(math.ceil(im.size[1] / 100 * 8))
+                    ), Image.ANTIALIAS)
 
-                            myfile.write(filename + ': ' + msg1 + '\n')
-                            myfile.close()
+                    im_thumb.save(outputFolder + imageThumbName, 'PNG')
 
-                        print('********')
+                    dictionary = {
+                        'title': filename,
+                        'numberOfSpots': str(completeNumberOfSpots),
+                        'contributor': contributor,
+                        'rgba': str(rgbData.tolist())
+                    }
 
-                    except RuntimeError as runtime_error:
+                    # Save JSON
+                    jsonFilePath = f'{outputFolder}{filename}.json'
+                    jsonFile = open(jsonFilePath, 'w')
+                    json.dump(dictionary, jsonFile, indent=2)
+                    jsonFile.close()
 
-                        msg2 = 'Error processing file'
-                        print(msg2)
+                    # Update the processed files list
+                    appendToFile(processedLogPath, filename)
 
-                        with open(logFilePath, 'a') as myfile:
+                    endTime = time.time() - startTime
+                    minutes = str("%.2f" % (endTime / 60))
 
-                            myfile.write(msg2 + ': ' + filename + '\n')
-                            myfile.close()
+                    message = f'Completed {filename} in {minutes} minutes.'
+                    print(message)
+                    appendToFile(logFilePath, message)
+                    print('********')
 
-                        print('********')
+                except FileExistsError:
+
+                    message = f'Error processing file: {filename}'
+                    print(message)
+                    appendToFile(logFilePath, message)
+                    print('********')
 
             else:
 
-                msg3 = filename + ' - cannot be processed.'
+                message = f'{filename}  - cannot be processed.'
 
-                print(msg3)
-
-                with open(logFilePath, 'a') as myfile:
-
-                    myfile.write(msg3 + '\n')
-                    myfile.close()
+                print(message)
+                appendToFile(logFilePath, message)

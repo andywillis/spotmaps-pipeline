@@ -1,7 +1,8 @@
 from os import path
 from glob import glob
 from operator import itemgetter
-from file import removeFile
+
+from file import removeFile, appendToFile, getListFromFileContents
 
 import cv2
 
@@ -17,7 +18,6 @@ def removeList(config):
 
     outputFolder = itemgetter('outputFolder')(config)
     listFilePath = f'{outputFolder}{listFile}'
-
     removeFile(listFilePath)
 
 
@@ -33,7 +33,8 @@ def buildList(config):
     )(config)
 
     listFilePath = f'{outputFolder}{listFile}'
-    spotmapsList = []
+
+    spotmapsList = getListFromFileContents(listFilePath)
 
     for infile in glob(inputFolder + '*.*'):
 
@@ -42,13 +43,13 @@ def buildList(config):
 
         print(f'Analysing: {filename}')
 
-        if filename in spotmapsList:
-
-            print('Already completed.')
-
         if ' CD' in filename:
 
             print(f'Ignoring {filename}: file part of series')
+
+        if filename in spotmapsList:
+
+            print('Already processed.')
 
         else:
 
@@ -62,7 +63,4 @@ def buildList(config):
             else:
 
                 spotmapsList.append(f'{filename}\n')
-
-                with open(listFilePath, 'a') as myfile:
-                    myfile.write(f'{filename}\n')
-                    myfile.close()
+                appendToFile(listFilePath, filename)
