@@ -6,6 +6,7 @@ from file import removeFile, appendToFile, getListFromFileContents
 
 import cv2
 
+from format import rinseFilename
 
 # Global
 listFile = 'spotmapsList.txt'
@@ -39,7 +40,7 @@ def buildList(config):
     for infile in glob(inputFolder + '*.*'):
 
         path_filename = path.split(infile)
-        filename = path_filename[1].split('.')[0]
+        filename = rinseFilename(path_filename[1]).split('.')[0]
 
         print(f'Analysing: {filename}')
 

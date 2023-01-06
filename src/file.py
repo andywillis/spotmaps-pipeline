@@ -1,4 +1,4 @@
-import os
+import os, re
 
 
 # `removeFile`
@@ -56,3 +56,4 @@ def appendToFile(filePath, data):
     with open(filePath, 'a+') as myfile:
         myfile.write(f'{data}\n')
         myfile.close()
+

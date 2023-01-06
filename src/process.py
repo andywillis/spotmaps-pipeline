@@ -8,7 +8,7 @@ from PIL import Image, ImageDraw
 import numpy as np
 
 from file import getListFromFileContents, appendToFile
-
+from format import rinseFilename
 
 # `processList`
 #
@@ -43,7 +43,7 @@ def processList(config):
         startTime = time.time()
 
         path_filename = os.path.split(currentFile)
-        filename = path_filename[1].split('.')[0]
+        filename = rinseFilename(path_filename[1]).split('.')[0]
 
         if filename in processedList:
 
@@ -91,15 +91,16 @@ def processList(config):
                             print('Frame could not be read')
 
                         # create an image 1 pixel wide
-                        point = cv.CreateImage((1, 1), cv.IPL_DEPTH_8U, 3)
-                        
+                        # point = cv.CreateImage((1, 1), cv.IPL_DEPTH_8U, 3)
+                        # point = np.zeros((1, 1, 3), np.uint8)
+
                         # resize the frame to the point
-                        cv.Resize(snapshot, point, cv.INTER_AREA)
+                        cv.resize(snapshot, (1, 1), interpolation=cv.INTER_AREA)
 
                         # get the rgb data from that point
-                        r = int(point[0, 0][2])
-                        g = int(point[0, 0][1])
-                        b = int(point[0, 0][0])
+                        r = int(snapshot[0, 0][2])
+                        g = int(snapshot[0, 0][1])
+                        b = int(snapshot[0, 0][0])
 
                         if frameInSecond > 1:
 
@@ -175,7 +176,7 @@ def processList(config):
 
                     second = 1
                     imageName = filename + '.tif'
-                    im.save(outputFolder + imageName, 'TIFF')
+                    im.save(f'{outputFolder}\\tifs\\{imageName}', 'TIFF')
 
                     # Build thumbnail
                     imageThumbName = filename + '_thumb.png'
@@ -185,7 +186,7 @@ def processList(config):
                         int(math.ceil(im.size[1] / 100 * 8))
                     ), Image.ANTIALIAS)
 
-                    im_thumb.save(outputFolder + imageThumbName, 'PNG')
+                    im_thumb.save(f'{outputFolder}\\thumbnails\\{imageThumbName}', 'PNG')
 
                     dictionary = {
                         'title': filename,
@@ -195,7 +196,7 @@ def processList(config):
                     }
 
                     # Save JSON
-                    jsonFilePath = f'{outputFolder}{filename}.json'
+                    jsonFilePath = f'{outputFolder}\\json\\{filename}.json'
                     jsonFile = open(jsonFilePath, 'w')
                     json.dump(dictionary, jsonFile, indent=2)
                     jsonFile.close()
