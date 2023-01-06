@@ -1,5 +1,8 @@
-files/input/*.*
+files/input/*
+!files/input/README.md
 files/output/json/*.json
 files/output/*.txt
 files/output/tifs/*.tif
 files/output/thumbnails/*.png
+
+__pycache__
