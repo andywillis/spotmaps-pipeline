@@ -1,8 +1,5 @@
 files/input/*.*
-files/output/json
-files/output/thumbnails
-files/output/tifs
-*.txt
-*.json
-*.tif
-*.png
+files/output/json/*.json
+files/output/*.txt
+files/output/tifs/*.tif
+files/output/thumbnails/*.png
