@@ -1,2 +1,7 @@
 files/input
-files/output
+files/output/json
+files/output/thumbnails
+files/output/tifs
+files/log.txt
+files/processedFiles.txt
+files/spotmapsList.txt

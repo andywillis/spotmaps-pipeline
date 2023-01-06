@@ -1,103 +1,66 @@
 from __future__ import division
+from operator import itemgetter
 
-import os, glob, math, sys, time
+import os, glob, math, sys, time, json
+
 import cv2 as cv
 from PIL import Image, ImageDraw
 import numpy as np
 
-os.system('cls')
+from file import getListFromFileContents, appendToFile
+from format import rinseFilename
 
-# User defined vars - use double backslashes if folder
-# is not in spotmaps folder
-input = 'C:\\Users\\spotmaps\\process\\'
-contributor = 'Andy Willis'
+# `processList`
+#
+# Iterate over the files and produce spotmap images
+# and JSON
+def processList(config):
 
-# Output and log files
-output = 'output/'
-log = 'log/spotmaps.log'
+    os.system('cls')
 
-# Init log file
-if os.path.isfile(log) is True:
+    (contributor,
+     inputFolder,
+     outputFolder,
+     logFile,
+     processedLogFile,
+     listFile) = itemgetter(
+        'contributor', 'inputFolder', 'outputFolder',
+        'logFile', 'processedLogFile', 'listFile'
+    )(config)
 
-    os.remove(log)
+    logFilePath = f'{outputFolder}{logFile}'
+    listFilePath = f'{outputFolder}{listFile}'
+    processedLogPath = f'{outputFolder}{processedLogFile}'
 
-# Get the file list
-newlist = []
+    # removeFile(logFilePath)
+    fileList = getListFromFileContents(listFilePath)
+    processedList = getListFromFileContents(processedLogPath)
 
-if os.path.isfile('newlist.txt') is False:
+    print('Retrieved lists')
 
-    smcf = open('newlist.txt', 'w')
-    smcf.write('')
+    for currentFile in glob.glob(inputFolder + '*.*'):
 
-else:
+        startTime = time.time()
 
-    smcf = open('newlist.txt', 'r')
-    line = smcf.readline()
+        path_filename = os.path.split(currentFile)
+        filename = rinseFilename(path_filename[1]).split('.')[0]
 
-    while line:
+        if filename in processedList:
 
-        newlist.append(line.rstrip('\n'))
-        line = smcf.readline()
+            print(f'{filename} - already completed.')
 
-smcf.close()
+        else:
 
-print('Retrieved new file information.')
+            if filename in fileList:
 
-# Get the processed file list
-processedlist = []
-
-if os.path.isfile('processedFiles.txt') is False:
-
-    smcf = open('processedFiles.txt', 'w')
-    smcf.write('')
-
-else:
-
-    smcf = open('processedFiles.txt', 'r')
-    line = smcf.readline()
-
-    while line:
-
-        processedlist.append(line.rstrip('\n'))
-        line = smcf.readline()
-
-smcf.close()
-
-print('Retrieved processed files information.')
-
-for infile in glob.glob(input + '*.avi'):
-
-    startTime = time.time()
-
-    path, filename = os.path.split(infile)
-    filename = filename.split('.')[0]
-
-    if filename in processedlist:
-
-        print(f'{filename} - already completed.')
-
-    else:
-
-        if filename in newlist:
-
-            capture = cv.CaptureFromFile(infile)
-            totalFrames = int(cv.GetCaptureProperty(capture, cv.CV_CAP_PROP_FRAME_COUNT))
-
-            if totalFrames == 0:
-
-                print('filename - unable to read avi.')
-
-                with open('processedFiles.txt', 'a') as myfile:
-
-                    myfile.write(f'{filename}\n')
-                    myfile.close()
-
-            else:
+                capture = cv.VideoCapture(currentFile)
+                totalFrames = int(capture.get(cv.CAP_PROP_FRAME_COUNT))
 
                 try:
 
                     print('********')
-                    fps = int(cv.GetCaptureProperty(capture, cv.CV_CAP_PROP_FPS))
+
+                    fps = int(capture.get(cv.CAP_PROP_FPS))
 
                     print(f'Analysing: {filename} / {str(totalFrames)} frames / {str(fps)} fps')
 
@@ -113,6 +76,7 @@ for infile in glob.glob(input + '*.avi'):
 
                     # Build rgbArray, 4 columns because we're using RGBA instead of plain RGB.
                     rgbData = np.zeros((completeNumberOfSpots, 3), dtype=np.int32)
+
                     frame = 1
                     spot = 1
                     frameInSecond = 1
@@ -120,12 +84,23 @@ for infile in glob.glob(input + '*.avi'):
 
                     while frame <= trimFrames:
 
-                        snapshot = cv.QueryFrame(capture)
-                        point = cv.CreateImage((1, 1), cv.IPL_DEPTH_8U, 3)
-                        cv.Resize(snapshot, point, cv.CV_INTER_AREA)
-                        r = int(point[0, 0][2])
-                        g = int(point[0, 0][1])
-                        b = int(point[0, 0][0])
+                        ret, snapshot = capture.read()
+
+                        if not ret:
+
+                            print('Frame could not be read')
+
+                        # create an image 1 pixel wide
+                        # point = cv.CreateImage((1, 1), cv.IPL_DEPTH_8U, 3)
+                        # point = np.zeros((1, 1, 3), np.uint8)
+
+                        # resize the frame to the point
+                        cv.resize(snapshot, (1, 1), interpolation=cv.INTER_AREA)
+
+                        # get the rgb data from that point
+                        r = int(snapshot[0, 0][2])
+                        g = int(snapshot[0, 0][1])
+                        b = int(snapshot[0, 0][0])
 
                         if frameInSecond > 1:
 
@@ -163,6 +138,7 @@ for infile in glob.glob(input + '*.avi'):
                     spotW = 50
                     spotH = 50
                     spotG = 2
+
                     canvasW = (spotW * 60) + (59 * spotG)
                     canvasH = (spotH * numberOfMinutes) + (numberOfMinutes - 1 * spotG)
 
@@ -170,10 +146,11 @@ for infile in glob.glob(input + '*.avi'):
 
                     im = Image.new('RGB', (canvasW, canvasH), (255, 255, 255))
                     draw = ImageDraw.Draw(im)
+
                     x = 0
                     y = 0
+
                     spot = 1
-                    minute = 1
                     second = 1
 
                     while spot <= completeNumberOfSpots:
@@ -199,7 +176,7 @@ for infile in glob.glob(input + '*.avi'):
 
                     second = 1
                     imageName = filename + '.tif'
-                    im.save(output + imageName, 'TIFF')
+                    im.save(f'{outputFolder}\\tifs\\{imageName}', 'TIFF')
 
                     # Build thumbnail
                     imageThumbName = filename + '_thumb.png'
@@ -209,58 +186,42 @@ for infile in glob.glob(input + '*.avi'):
                         int(math.ceil(im.size[1] / 100 * 8))
                     ), Image.ANTIALIAS)
 
-                    im_thumb.save(output + imageThumbName, 'PNG')
+                    im_thumb.save(f'{outputFolder}\\thumbnails\\{imageThumbName}', 'PNG')
 
-                    # Save information
-                    jsonName = filename + '.map'
-                    mapFile = open(output + jsonName, 'w')
-                    mapFile.write('{')
-                    mapFile.write('"title": "' + filename + '",')
-                    mapFile.write('"numberOfSpots": ' + str(completeNumberOfSpots) + ',')
-                    mapFile.write('"contributor": "' + contributor + '",')
-                    mapFile.write('"rgba": "')
-                    mapFile.write(str(rgbData.tolist()) + '"')
-                    mapFile.write('}')
-                    mapFile.close()
+                    dictionary = {
+                        'title': filename,
+                        'numberOfSpots': str(completeNumberOfSpots),
+                        'contributor': contributor,
+                        'rgba': str(rgbData.tolist())
+                    }
+
+                    # Save JSON
+                    jsonFilePath = f'{outputFolder}\\json\\{filename}.json'
+                    jsonFile = open(jsonFilePath, 'w')
+                    json.dump(dictionary, jsonFile, indent=2)
+                    jsonFile.close()
 
                     # Update the processed files list
-                    with open('processedFiles.txt', 'a') as myfile:
-
-                        myfile.write(filename + '\n')
-                        myfile.close()
+                    appendToFile(processedLogPath, filename)
 
                     endTime = time.time() - startTime
                     minutes = str("%.2f" % (endTime / 60))
-                    msg1 = 'Completed in ' + minutes + ' minutes.'
 
-                    print(msg1)
-
-                    with open(log, 'a') as myfile:
-
-                        myfile.write(filename + ': ' + msg1 + '\n')
-                        myfile.close()
-
+                    message = f'Completed {filename} in {minutes} minutes.'
+                    print(message)
+                    appendToFile(logFilePath, message)
                     print('********')
 
-                except RuntimeError as runtime_error:
+                except FileExistsError:
 
-                    msg2 = 'Error processing file'
-                    print(msg2)
-
-                    with open(log, 'a') as myfile:
-
-                        myfile.write(msg2 + ': ' + filename + '\n')
-                        myfile.close()
-
+                    message = f'Error processing file: {filename}'
+                    print(message)
+                    appendToFile(logFilePath, message)
                     print('********')
 
-        else:
+            else:
 
-            msg3 = filename + ' - cannot be processed.'
+                message = f'{filename}  - cannot be processed.'
 
-            print(msg3)
-
-            with open(log, 'a') as myfile:
-
-                myfile.write(msg3 + '\n')
-                myfile.close()
+                print(message)
+                appendToFile(logFilePath, message)
