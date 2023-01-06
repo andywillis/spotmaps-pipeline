@@ -37,7 +37,7 @@ def buildList(config):
 
     spotmapsList = getListFromFileContents(listFilePath)
 
-    for infile in glob(inputFolder + '*.*'):
+    for infile in glob(inputFolder + '[!README]*'):
 
         path_filename = path.split(infile)
         filename = rinseFilename(path_filename[1]).split('.')[0]

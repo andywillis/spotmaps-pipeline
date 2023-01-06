@@ -38,7 +38,7 @@ def processList(config):
 
     print('Retrieved lists')
 
-    for currentFile in glob.glob(inputFolder + '*.*'):
+    for currentFile in glob.glob(inputFolder + '[!README]*'):
 
         startTime = time.time()
 
