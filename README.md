@@ -1,4 +1,4 @@
-# Film colour blueprints pipeline
+# Spotmaps pipeline
 
 Python / OpenCV pipeline to process films and extract their colour information.
 

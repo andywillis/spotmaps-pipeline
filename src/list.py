@@ -37,31 +37,33 @@ def buildList(config):
 
     spotmapsList = getListFromFileContents(listFilePath)
 
-    for infile in glob(inputFolder + '[!README]*'):
+    for infile in glob(inputFolder + '*.*'):
 
         path_filename = path.split(infile)
         filename = rinseFilename(path_filename[1]).split('.')[0]
 
-        print(f'Analysing: {filename}')
+        if filename != 'README':
 
-        if ' CD' in filename:
+            print(f'Analysing: {filename}')
 
-            print(f'Ignoring {filename}: file part of series')
+            if ' CD' in filename:
 
-        if filename in spotmapsList:
+                print(f'Ignoring {filename}: file part of series')
 
-            print('Already processed.')
+            if filename in spotmapsList:
 
-        else:
-
-            capture = cv2.VideoCapture(infile)
-            totalFrames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
-
-            if totalFrames == 0:
-
-                print('Unable to read file.')
+                print('Already processed.')
 
             else:
 
-                spotmapsList.append(f'{filename}\n')
-                appendToFile(listFilePath, filename)
+                capture = cv2.VideoCapture(infile)
+                totalFrames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+
+                if totalFrames == 0:
+
+                    print('Unable to read file.')
+
+                else:
+
+                    spotmapsList.append(f'{filename}\n')
+                    appendToFile(listFilePath, filename)
