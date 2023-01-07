@@ -34,9 +34,9 @@ def processList(config):
         'listFile'
     )(config)
 
-    logFilePath = f'{outputFolder}\\{logFile}'
-    listFilePath = f'{outputFolder}\\{listFile}'
-    processedLogPath = f'{outputFolder}\\{processedLogFile}'
+    logFilePath = f'{outputFolder}{logFile}'
+    listFilePath = f'{outputFolder}{listFile}'
+    processedLogPath = f'{outputFolder}{processedLogFile}'
 
     # removeFile(logFilePath)
     fileList = getListFromFileContents(listFilePath)

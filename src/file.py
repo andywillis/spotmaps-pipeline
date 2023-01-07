@@ -44,7 +44,7 @@ def getListFromFileContents(filePath):
 # Create a new file
 def createFile(filePath):
 
-    with open(filePath, 'w+') as myfile:
+    with open(filePath, 'a+') as myfile:
         myfile.close()
 
 
