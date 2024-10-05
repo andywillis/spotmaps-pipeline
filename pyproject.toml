@@ -2,7 +2,7 @@
 name = "spotmaps-pipeline"
 version = "2.0.0"
 description = "Spotmaps pipeline"
-authors = "Andy Willis"
+authors = ["Andy Willis"]
 readme = "README.md"
 packages = [{include = "spotmaps_pipeline"}]
 
